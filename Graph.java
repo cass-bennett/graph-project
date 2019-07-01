@@ -29,15 +29,17 @@ public class Graph implements java.io.Serializable {
     /**
      * Searches the graph for all Nodes whose names are contained within a set
      * of Strings.
+     * When a Node is found, the corresponding String is removed from the
+     * input set. 
      * <p>
-     * Be aware that this method removes found Strings from the input set.
-     * So after this method is run, the returned Set should contain all Nodes
-     * whose names were contained in strs, and strs should contain only the
-     * Strings for which no corresponding Node was found.
-     * @param  strs  a set of strings to find within the graph
-     * @return       a set of Nodes found whose names are in strs
+     * In other words, after this method is run, the returned set
+     * should contain all Nodes whose names were contained in strs,
+     * and strs should contain only the Strings for which no corresponding
+     * Node was found.
+     * @param  strs  a HashSet of strings to find within the graph
+     * @return       a HashSet of Nodes found whose names are in strs
      */
-    HashSet<Node> findNodes(HashSet<String> strs) {
+    HashSet<Node> findNodesRemoveStrings(HashSet<String> strs) {
 	Node currentNode;
 	HashSet<Node> visited = new HashSet<Node>();
 	HashSet<Node> ret = new HashSet<Node>();
@@ -74,11 +76,9 @@ public class Graph implements java.io.Serializable {
 	    addSet.remove(n.getName());
 
 	// Find Nodes that are in the Graph but don't have an edge to fromNode
-	HashSet<Node> addNodes = findNodes(addSet);
+	HashSet<Node> addNodes = findNodesRemoveStrings(addSet);
 
 	// For Nodes that aren't in the Graph, make new ones
-	for(Node n : addNodes)
-	    addSet.remove(n.getName());
 	for(String s : addSet)
 	    addNodes.add(new Node(s));
 
