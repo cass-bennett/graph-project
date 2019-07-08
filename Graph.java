@@ -1,12 +1,17 @@
 import org.jsoup.Jsoup;
 import java.io.IOException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Scanner;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
@@ -61,7 +66,7 @@ public class Graph implements java.io.Serializable {
     }
 
     /**
-     * Adds an edge between fromNode and all Nodes with names matching the
+     * Adds edges between fromNode and all Nodes with names matching the
      * Strings in addSet, if those edges don't already exist.
      * <p>
      * This method will draw edges between Nodes that already exist in the
@@ -82,20 +87,53 @@ public class Graph implements java.io.Serializable {
 	for(String s : addSet)
 	    addNodes.add(new Node(s));
 
-	/* ==========================================================
-	 * This will have a part where it figures out the distances
-	 * for each Node, but for now it uses 1.0 as a placeholder.   */
+	// ==========================================================
+	// Currently the following section finds the distance by reading a
+	// frequency table of words from a file.
+	// Forthcoming is the functionality to read frequency tables from
+	// the web if the files don't yet exist on the hard drive.
+	// ==========================================================
+	
+	// Find the distances of the Nodes and add them as edges
+	Hashtable<String,Integer> fromTable
+	    = readTableFromFile(fromNode.getName());
 	for(Node n : addNodes) {
-	    fromNode.addEdge(n,1.0);
-	    n.addEdge(fromNode,1.0);
+	    Hashtable<String,Integer> t = readTableFromFile(n.getName());
+	    double dist = computeDistance(fromTable,t);
+	    fromNode.addEdge(n,dist);
+	    n.addEdge(fromNode,dist);
 	}
 	// ==========================================================
     }
 
-    public void writeToFile( String fileName ) {
+    /**
+     * Takes two frequency tables of all the words in an article and
+     * computes the distance between them, in the following way:
+     * for each word that occurs in either article, take the difference in the
+     * number of occurrences between the two articles, then square that
+     * difference, then add all the differences together and return the
+     * square root of that sum
+     */
+    static double computeDistance( Hashtable<String,Integer> t1,
+				   Hashtable<String,Integer> t2 ) {
+	double subtotal = 0;
+	for( Entry<String,Integer> e1 : t1.entrySet() ) {
+	    Integer other = t2.get( e1.getKey() );
+	    if( other == null )
+		other = 0;
+	    subtotal += (e1.getValue() - other) * (e1.getValue() - other);
+	}
+	for( Entry<String,Integer> e2 : t2.entrySet() ) {
+	    if( ! t1.containsKey( e2.getKey() ) )
+		subtotal += (e2.getValue() * e2.getValue());
+	}
+	return Math.sqrt(subtotal);
+    }
+    
+    public void writeToFile() {
 	try{
 	    FileOutputStream fileOut =
-		new FileOutputStream(fileName);
+		new FileOutputStream(FILEPATH + "/graph.ser");
 	    ObjectOutputStream out = new ObjectOutputStream(fileOut);
 	    out.writeObject(this);
 	    out.close();
@@ -104,10 +142,12 @@ public class Graph implements java.io.Serializable {
 	    e.printStackTrace();
 	}
     }
-    public static Graph readFromFile( String fileName ) {
+    
+    public static Graph readFromFile(String dirPath) {
 	Graph g = null;
 	try {
-	    FileInputStream fileIn = new FileInputStream(fileName);
+	    FileInputStream fileIn =
+		new FileInputStream(dirPath + "/graph.ser");
 	    ObjectInputStream in = new ObjectInputStream(fileIn);
 	    g = (Graph) in.readObject();
 	    in.close();
@@ -119,5 +159,37 @@ public class Graph implements java.io.Serializable {
 	}
 	return g;
     }
-
+    
+    void writeTableToFile(String fileName, Hashtable<String,Integer> table) {
+	try{
+	    FileWriter fileOut = new FileWriter(FILEPATH + "/" + fileName);
+	    fileOut.write(String.valueOf(table.size()));
+	    for(Entry<String,Integer> e : table.entrySet())
+		fileOut.write("\n" + e.getValue() + " " + e.getKey());
+	    fileOut.close();
+	} catch(IOException e) {
+	    e.printStackTrace();
+	}
+    }
+    
+    Hashtable<String,Integer> readTableFromFile(String fileName) {
+	Hashtable<String,Integer> table = null;
+	try {
+	    File f = new File(FILEPATH + "/" + fileName);
+	    if(f.exists()) {
+		Scanner sc = new Scanner(f);
+		table = new Hashtable<String,Integer>((sc.nextInt()*4)/3+1);
+		while(sc.hasNext()) {
+		    int freq = sc.nextInt();
+		    sc.skip(" ");
+		    String word = sc.nextLine();
+		    table.put(word,freq);
+		}
+		sc.close();
+	    }
+	}catch(IOException e)  {
+	    e.printStackTrace();
+	}
+	return table;
+    }
 }
