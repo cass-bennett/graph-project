@@ -12,10 +12,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
-public class UnitTests {
-    // name of the directory for tests to store files in
-    final String FP = "unit-test-files";
-    
+public class UnitTests {    
     @Test
     public void twoNodeCycle() {
 	Node yin = new Node("yin");
@@ -33,7 +30,7 @@ public class UnitTests {
 
     @Test
     public void addEdgesToSingleNode() {
-	Graph myGraph = new Graph("A", FP + "/add-edges-single-node");
+	Graph myGraph = new Graph("A", "add-edges-single-node");
 	HashSet<String> mySet = new HashSet<String>(Arrays.asList("B","C"));
 	myGraph.addEdges(myGraph.root, mySet);
 	List<Node> myList = myGraph.root.asNodes();
@@ -79,7 +76,7 @@ public class UnitTests {
 
     @Test
     public void tableFileIO() {
-	Graph g = new Graph("root", FP );
+	Graph g = new Graph("root", "" );
 	Hashtable<String,Integer> t = new Hashtable<String,Integer>();
 	t.put("a",1);
 	t.put("b",2);
@@ -88,7 +85,7 @@ public class UnitTests {
 	t.put("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZqwertyuiop[]asdfghjkl;'zxcvbkmé,.",2);
 	g.writeTableToFile("t",t);
 	assertEquals(t,g.readTableFromFile("t"));
-	File f = new File(FP + "/t");
+	File f = new File("t");
 	f.delete();
 	assertEquals(null,g.readTableFromFile("t"));
     }

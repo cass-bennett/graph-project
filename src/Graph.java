@@ -28,7 +28,10 @@ public class Graph implements java.io.Serializable {
     public Graph( String rootName, String fp ) {
 	root = new Node( rootName );
 	numNodes = 0;
-	FILEPATH = fp;
+	if(fp.equals("") || fp.substring(fp.length() - 1).equals("/"))
+	    FILEPATH = fp;
+	else
+	    FILEPATH = fp + "/";
     }
 
     /**
@@ -133,7 +136,7 @@ public class Graph implements java.io.Serializable {
     public void writeToFile() {
 	try{
 	    FileOutputStream fileOut =
-		new FileOutputStream(FILEPATH + "/graph.ser");
+		new FileOutputStream(FILEPATH + "graph.ser");
 	    ObjectOutputStream out = new ObjectOutputStream(fileOut);
 	    out.writeObject(this);
 	    out.close();
@@ -147,7 +150,7 @@ public class Graph implements java.io.Serializable {
 	Graph g = null;
 	try {
 	    FileInputStream fileIn =
-		new FileInputStream(dirPath + "/graph.ser");
+		new FileInputStream(dirPath + "graph.ser");
 	    ObjectInputStream in = new ObjectInputStream(fileIn);
 	    g = (Graph) in.readObject();
 	    in.close();
@@ -162,7 +165,7 @@ public class Graph implements java.io.Serializable {
     
     void writeTableToFile(String fileName, Hashtable<String,Integer> table) {
 	try{
-	    FileWriter fileOut = new FileWriter(FILEPATH + "/" + fileName);
+	    FileWriter fileOut = new FileWriter(FILEPATH + fileName);
 	    fileOut.write(String.valueOf(table.size()));
 	    for(Entry<String,Integer> e : table.entrySet())
 		fileOut.write("\n" + e.getValue() + " " + e.getKey());
@@ -175,7 +178,7 @@ public class Graph implements java.io.Serializable {
     Hashtable<String,Integer> readTableFromFile(String fileName) {
 	Hashtable<String,Integer> table = null;
 	try {
-	    File f = new File(FILEPATH + "/" + fileName);
+	    File f = new File(FILEPATH + fileName);
 	    if(f.exists()) {
 		Scanner sc = new Scanner(f);
 		table = new Hashtable<String,Integer>((sc.nextInt()*4)/3+1);
